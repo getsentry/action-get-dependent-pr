@@ -1,5 +1,5 @@
 name: 'Get Dependent Pull Request'
-description: 'This checks for cross referenced PRs that require the current PR.'
+description: 'This checks current PR body for a dependent PR'
 author: 'Sentry'
 inputs:
   appId:
@@ -14,12 +14,9 @@ inputs:
   patternFlags:
     required: false
     description: The regex flags to use for `textPattern`
-  sourceRepo:
-    required: false
-    description: The full "<owner>/<repo>" if you want to limit referencers to a repo
 outputs:
   ref:
-    description: The ref for the pull request referencer
+    description: The ref for the dependent pull request
   pullRequest:
     description: Stringified pull request object
 runs:

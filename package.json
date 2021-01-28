@@ -2,7 +2,7 @@
   "name": "github-dependent-pr",
   "version": "0.0.0",
   "private": true,
-  "description": "This checks for cross referenced PRs that require the current PR.",
+  "description": "This checks current PR body for a dependent PR",
   "main": "lib/index.js",
   "scripts": {
     "build": "yarn tsc",

@@ -8,11 +8,11 @@ async function run(): Promise<void> {
     const id: string = core.getInput('appId');
     const textPattern: string = core.getInput('textPattern');
     const patternFlags: string = core.getInput('patternFlags');
-    const sourceRepoFull: string = core.getInput('sourceRepo');
+    // const sourceRepoFull: string = core.getInput('sourceRepo');
     const pullRequestPayload = github.context.payload.pull_request;
-    const {owner, repo} = github.context.repo;
+    // const {owner, repo} = github.context.repo;
     const defaultRegex = new RegExp(
-      `requires.*${owner}/${repo}/pull/(\\d+)`,
+      'requires.*https://github.com/([^/]+)/([^/]+)/pull/(\\d+)',
       'im'
     );
 
@@ -24,43 +24,23 @@ async function run(): Promise<void> {
     const token = await getToken(id, privateKey);
     const octokit = github.getOctokit(token);
 
-    // Look for cross reference events in the PR
-    const resp = await octokit.issues.listEventsForTimeline({
-      owner,
-      repo,
-      issue_number: Number(pullRequestPayload.number),
-    });
-
     const textPatternRegex =
-      textPattern && new RegExp(textPattern, patternFlags);
+      (textPattern && new RegExp(textPattern, patternFlags)) || defaultRegex;
 
-    const data = resp.data.find(event => {
-      // @ts-ignore
-      const {issue} = event?.source || {};
+    const matches = pullRequestPayload.body?.match(textPatternRegex);
 
-      if (!issue) {
-        return false;
-      }
-
-      return (
-        event.event === 'cross-referenced' &&
-        (!sourceRepoFull || issue.repository.full_name === sourceRepoFull) &&
-        (textPatternRegex || defaultRegex).test(issue.body) &&
-        !!issue.pull_request
-      );
-    });
-
-    if (!data) {
-      core.debug('Not found or not a pull request');
+    if (!matches) {
+      // No match, nothing to do here...
       return;
     }
 
-    const [sourceOwner, sourceRepo] = sourceRepoFull.split('/');
+    const [, owner, repo, targetPullRequestNumber] = matches;
+
     const pullRequest = await octokit.pulls.get({
-      owner: sourceOwner,
-      repo: sourceRepo,
+      owner,
+      repo,
       // @ts-ignore (typing is wrong for this)
-      pull_number: data.source.issue.number,
+      pull_number: targetPullRequestNumber,
     });
 
     // Can't use merge commit here because of `bin/bump-sentry`

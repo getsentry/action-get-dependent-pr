@@ -13303,50 +13303,35 @@ const core = __importStar(__webpack_require__(2186));
 const github = __importStar(__webpack_require__(5438));
 const github_app_token_1 = __importDefault(__webpack_require__(3162));
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const privateKey = core.getInput('privateKey');
             const id = core.getInput('appId');
             const textPattern = core.getInput('textPattern');
             const patternFlags = core.getInput('patternFlags');
-            const sourceRepoFull = core.getInput('sourceRepo');
+            // const sourceRepoFull: string = core.getInput('sourceRepo');
             const pullRequestPayload = github.context.payload.pull_request;
-            const { owner, repo } = github.context.repo;
-            const defaultRegex = new RegExp(`requires.*${owner}/${repo}/pull/(\\d+)`, 'im');
+            // const {owner, repo} = github.context.repo;
+            const defaultRegex = new RegExp('requires.*https://github.com/([^/]+)/([^/]+)/pull/(\\d+)', 'im');
             if (!pullRequestPayload) {
                 core.error('This action only works for pull requests');
                 return;
             }
             const token = yield github_app_token_1.default(id, privateKey);
             const octokit = github.getOctokit(token);
-            // Look for cross reference events in the PR
-            const resp = yield octokit.issues.listEventsForTimeline({
-                owner,
-                repo,
-                issue_number: Number(pullRequestPayload.number),
-            });
-            const textPatternRegex = textPattern && new RegExp(textPattern, patternFlags);
-            const data = resp.data.find(event => {
-                // @ts-ignore
-                const { issue } = (event === null || event === void 0 ? void 0 : event.source) || {};
-                if (!issue) {
-                    return false;
-                }
-                return (event.event === 'cross-referenced' &&
-                    (!sourceRepoFull || issue.repository.full_name === sourceRepoFull) &&
-                    (textPatternRegex || defaultRegex).test(issue.body) &&
-                    !!issue.pull_request);
-            });
-            if (!data) {
-                core.debug('Not found or not a pull request');
+            const textPatternRegex = (textPattern && new RegExp(textPattern, patternFlags)) || defaultRegex;
+            const matches = (_a = pullRequestPayload.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
+            if (!matches) {
+                // No match, nothing to do here...
                 return;
             }
-            const [sourceOwner, sourceRepo] = sourceRepoFull.split('/');
+            const [, owner, repo, targetPullRequestNumber] = matches;
             const pullRequest = yield octokit.pulls.get({
-                owner: sourceOwner,
-                repo: sourceRepo,
+                owner,
+                repo,
                 // @ts-ignore (typing is wrong for this)
-                pull_number: data.source.issue.number,
+                pull_number: targetPullRequestNumber,
             });
             // Can't use merge commit here because of `bin/bump-sentry`
             core.setOutput('ref', pullRequest.data.head.sha);
