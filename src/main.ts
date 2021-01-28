@@ -29,20 +29,21 @@ async function run(): Promise<void> {
 
     const textPatternRegex = new RegExp(textPattern, patternFlags);
 
-    const data = resp.data.find(
-      event =>
-        // @ts-ignore
+    const data = resp.data.find(event => {
+      // @ts-ignore
+      const {issue} = event?.source || {};
+
+      if (!issue) {
+        return false;
+      }
+
+      return (
         event.event === 'cross-referenced' &&
-        (!sourceRepoFull ||
-          // @ts-ignore
-          event.source.issue.repository.full_name === sourceRepoFull) &&
-        textPatternRegex.test(
-          // @ts-ignore
-          event.source.issue.body
-        ) &&
-        // @ts-ignore
-        !!event.source.issue.pull_request
-    );
+        (!sourceRepoFull || issue.repository.full_name === sourceRepoFull) &&
+        textPatternRegex.test(issue.body) &&
+        !!issue.pull_request
+      );
+    });
 
     if (!data) {
       core.debug('Not found or not a pull request');

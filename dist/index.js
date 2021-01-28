@@ -5703,7 +5703,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const auth_app_1 = __webpack_require__(7541);
 const rest_1 = __webpack_require__(5375);
-function getToken(privateKey, appId) {
+function getToken(appId, privateKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const appOctokit = new rest_1.Octokit({
             authStrategy: auth_app_1.createAppAuth,
@@ -13325,17 +13325,17 @@ function run() {
                 issue_number: Number(pullRequestPayload.number),
             });
             const textPatternRegex = new RegExp(textPattern, patternFlags);
-            const data = resp.data.find(event => 
-            // @ts-ignore
-            event.event === 'cross-referenced' &&
-                (!sourceRepoFull ||
-                    // @ts-ignore
-                    event.source.issue.repository.full_name === sourceRepoFull) &&
-                textPatternRegex.test(
+            const data = resp.data.find(event => {
                 // @ts-ignore
-                event.source.issue.body) &&
-                // @ts-ignore
-                !!event.source.issue.pull_request);
+                const { issue } = (event === null || event === void 0 ? void 0 : event.source) || {};
+                if (!issue) {
+                    return false;
+                }
+                return (event.event === 'cross-referenced' &&
+                    (!sourceRepoFull || issue.repository.full_name === sourceRepoFull) &&
+                    textPatternRegex.test(issue.body) &&
+                    !!issue.pull_request);
+            });
             if (!data) {
                 core.debug('Not found or not a pull request');
                 return;
