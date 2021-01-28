@@ -9,7 +9,7 @@ inputs:
     required: true
     description: GitHub App private key
   textPattern:
-    required: true
+    required: false
     description: The regex pattern to use against the referencer, note this is passed to RegExp()
   patternFlags:
     required: false

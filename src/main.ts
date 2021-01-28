@@ -11,6 +11,10 @@ async function run(): Promise<void> {
     const sourceRepoFull: string = core.getInput('sourceRepo');
     const pullRequestPayload = github.context.payload.pull_request;
     const {owner, repo} = github.context.repo;
+    const defaultRegex = new RegExp(
+      `requires.*${owner}/${repo}/pull/(\\d+)`,
+      'im'
+    );
 
     if (!pullRequestPayload) {
       core.error('This action only works for pull requests');
@@ -27,7 +31,8 @@ async function run(): Promise<void> {
       issue_number: Number(pullRequestPayload.number),
     });
 
-    const textPatternRegex = new RegExp(textPattern, patternFlags);
+    const textPatternRegex =
+      textPattern && new RegExp(textPattern, patternFlags);
 
     const data = resp.data.find(event => {
       // @ts-ignore
@@ -40,7 +45,7 @@ async function run(): Promise<void> {
       return (
         event.event === 'cross-referenced' &&
         (!sourceRepoFull || issue.repository.full_name === sourceRepoFull) &&
-        textPatternRegex.test(issue.body) &&
+        (textPatternRegex || defaultRegex).test(issue.body) &&
         !!issue.pull_request
       );
     });
