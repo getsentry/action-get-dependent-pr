@@ -13335,7 +13335,7 @@ function run() {
             });
             // Can't use merge commit here because of `bin/bump-sentry`
             core.setOutput('ref', pullRequest.data.head.sha);
-            core.setOutput('pullRequest', JSON.stringify(pullRequest));
+            core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
         }
         catch (error) {
             core.setFailed(error.message);
