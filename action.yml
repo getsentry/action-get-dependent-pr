@@ -1,0 +1,27 @@
+name: 'Get Dependent Pull Request'
+description: 'This checks for cross referenced PRs that require the current PR.'
+author: 'Sentry'
+inputs:
+  appId:
+    required: true
+    description: GitHub App ID
+  privateKey:
+    required: true
+    description: GitHub App private key
+  textPattern:
+    required: true
+    description: The regex pattern to use against the referencer, note this is passed to RegExp()
+  patternFlags:
+    required: false
+    description: The regex flags to use for `textPattern`
+  sourceRepo:
+    required: false
+    description: The full "<owner>/<repo>" if you want to limit referencers to a repo
+outputs:
+  ref:
+    description: The ref for the pull request referencer
+  pullRequest:
+    description: Stringified pull request object
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
