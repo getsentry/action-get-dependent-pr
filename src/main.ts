@@ -30,7 +30,7 @@ async function run(): Promise<void> {
     const matches = pullRequestPayload.body?.match(textPatternRegex);
 
     if (!matches) {
-      // No match, nothing to do here...
+      core.debug('No match, nothing to do here...');
       return;
     }
 
@@ -44,7 +44,9 @@ async function run(): Promise<void> {
     });
 
     // Can't use merge commit here because of `bin/bump-sentry`
-    core.setOutput('ref', pullRequest.data.head.sha);
+    core.setOutput('sha', pullRequest.data.head.sha);
+    core.setOutput('branch', pullRequest.data.head.ref);
+    core.setOutput('number', pullRequest.data.number);
     core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
   } catch (error) {
     core.setFailed(error.message);

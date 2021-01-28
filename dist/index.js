@@ -13323,7 +13323,7 @@ function run() {
             const textPatternRegex = (textPattern && new RegExp(textPattern, patternFlags)) || defaultRegex;
             const matches = (_a = pullRequestPayload.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
             if (!matches) {
-                // No match, nothing to do here...
+                core.debug('No match, nothing to do here...');
                 return;
             }
             const [, owner, repo, targetPullRequestNumber] = matches;
@@ -13334,7 +13334,9 @@ function run() {
                 pull_number: targetPullRequestNumber,
             });
             // Can't use merge commit here because of `bin/bump-sentry`
-            core.setOutput('ref', pullRequest.data.head.sha);
+            core.setOutput('sha', pullRequest.data.head.sha);
+            core.setOutput('branch', pullRequest.data.head.ref);
+            core.setOutput('number', pullRequest.data.number);
             core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
         }
         catch (error) {

@@ -15,8 +15,12 @@ inputs:
     required: false
     description: The regex flags to use for `textPattern`
 outputs:
-  ref:
-    description: The ref for the dependent pull request
+  sha:
+    description: The HEAD SHA for the dependent pull request
+  branch:
+    description: The branch of the pull request
+  number:
+    description: The pull request number
   pullRequest:
     description: Stringified pull request object
 runs:
