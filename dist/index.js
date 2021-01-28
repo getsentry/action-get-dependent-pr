@@ -13310,26 +13310,33 @@ function run() {
             const id = core.getInput('appId');
             const textPattern = core.getInput('textPattern');
             const patternFlags = core.getInput('patternFlags');
-            // const sourceRepoFull: string = core.getInput('sourceRepo');
             const pullRequestPayload = github.context.payload.pull_request;
-            // const {owner, repo} = github.context.repo;
-            const defaultRegex = new RegExp('requires.*https://github.com/([^/]+)/([^/]+)/pull/(\\d+)', 'im');
             if (!pullRequestPayload) {
                 core.error('This action only works for pull requests');
                 return;
             }
+            const { owner, repo } = github.context.repo;
             const token = yield github_app_token_1.default(id, privateKey);
             const octokit = github.getOctokit(token);
-            const textPatternRegex = (textPattern && new RegExp(textPattern, patternFlags)) || defaultRegex;
-            const matches = (_a = pullRequestPayload.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
+            // We want to fetch the pull request on every run, if we use the workflow event
+            // payload, the PR body text can be stale e.g. if you re-run a workflow
+            const sourcePullRequest = yield octokit.pulls.get({
+                owner,
+                repo,
+                // @ts-ignore (typing is wrong for this)
+                pull_number: pullRequestPayload.number,
+            });
+            const textPatternRegex = (textPattern && new RegExp(textPattern, patternFlags)) ||
+                new RegExp('requires.*https://github.com/([^/]+)/([^/]+)/pull/(\\d+)', 'im');
+            const matches = (_a = sourcePullRequest === null || sourcePullRequest === void 0 ? void 0 : sourcePullRequest.data.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
             if (!matches) {
                 core.debug('No match, nothing to do here...');
                 return;
             }
-            const [, owner, repo, targetPullRequestNumber] = matches;
+            const [, targetOwner, targetRepo, targetPullRequestNumber] = matches;
             const pullRequest = yield octokit.pulls.get({
-                owner,
-                repo,
+                owner: targetOwner,
+                repo: targetRepo,
                 // @ts-ignore (typing is wrong for this)
                 pull_number: targetPullRequestNumber,
             });
