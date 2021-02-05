@@ -13310,6 +13310,7 @@ function run() {
             const id = core.getInput('appId');
             const textPattern = core.getInput('textPattern');
             const patternFlags = core.getInput('patternFlags');
+            const exactRepo = core.getInput('repo');
             const pullRequestPayload = github.context.payload.pull_request;
             if (!pullRequestPayload) {
                 core.error('This action only works for pull requests');
@@ -13331,6 +13332,10 @@ function run() {
             const matches = (_a = sourcePullRequest === null || sourcePullRequest === void 0 ? void 0 : sourcePullRequest.data.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
             if (!matches) {
                 core.debug('No match, nothing to do here...');
+                return;
+            }
+            // If exactRepo was passed, then ensure that the link that was parsed matches it
+            if (exactRepo && `${matches[1]}/${matches[2]}` !== exactRepo) {
                 return;
             }
             const [, targetOwner, targetRepo, targetPullRequestNumber] = matches;

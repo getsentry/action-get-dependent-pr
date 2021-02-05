@@ -14,6 +14,9 @@ inputs:
   patternFlags:
     required: false
     description: The regex flags to use for `textPattern`
+  repo:
+    required: false
+    description: The exact owner/repo to match to
 outputs:
   sha:
     description: The HEAD SHA for the dependent pull request

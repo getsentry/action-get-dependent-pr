@@ -8,6 +8,7 @@ async function run(): Promise<void> {
     const id: string = core.getInput('appId');
     const textPattern: string = core.getInput('textPattern');
     const patternFlags: string = core.getInput('patternFlags');
+    const exactRepo: string = core.getInput('repo');
 
     const pullRequestPayload = github.context.payload.pull_request;
 
@@ -41,6 +42,11 @@ async function run(): Promise<void> {
 
     if (!matches) {
       core.debug('No match, nothing to do here...');
+      return;
+    }
+
+    // If exactRepo was passed, then ensure that the link that was parsed matches it
+    if (exactRepo && `${matches[1]}/${matches[2]}` !== exactRepo) {
       return;
     }
 
