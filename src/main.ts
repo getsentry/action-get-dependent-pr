@@ -47,6 +47,9 @@ async function run(): Promise<void> {
 
     // If exactRepo was passed, then ensure that the link that was parsed matches it
     if (exactRepo && `${matches[1]}/${matches[2]}` !== exactRepo) {
+      core.debug(
+        `Exact repo does not match. '${exactRepo}' vs '${matches[1]}/${matches[2]}'`
+      );
       return;
     }
 
@@ -59,11 +62,20 @@ async function run(): Promise<void> {
       pull_number: targetPullRequestNumber,
     });
 
+    const outputs = {
+      sha: pullRequest.data.head.sha,
+      branch: pullRequest.data.head.ref,
+      number: pullRequest.data.number,
+      pullRequest: JSON.stringify(pullRequest.data),
+    } as {[key: string]: string | number};
+
+    core.debug('Set the following outputs:');
     // Can't use merge commit here because of `bin/bump-sentry`
-    core.setOutput('sha', pullRequest.data.head.sha);
-    core.setOutput('branch', pullRequest.data.head.ref);
-    core.setOutput('number', pullRequest.data.number);
-    core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
+    for (const k of Object.keys(outputs)) {
+      const v = outputs[k];
+      core.debug(`${k}: '${v}'`);
+      core.setOutput(k, v);
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
