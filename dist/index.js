@@ -13330,12 +13330,12 @@ function run() {
                 new RegExp('requires.*https://github.com/([^/]+)/([^/]+)/pull/(\\d+)', 'im');
             const matches = (_a = sourcePullRequest === null || sourcePullRequest === void 0 ? void 0 : sourcePullRequest.data.body) === null || _a === void 0 ? void 0 : _a.match(textPatternRegex);
             if (!matches) {
-                core.debug('No match, nothing to do here...');
+                core.info('No match, nothing to do here...');
                 return;
             }
             // If exactRepo was passed, then ensure that the link that was parsed matches it
             if (exactRepo && `${matches[1]}/${matches[2]}` !== exactRepo) {
-                core.debug(`Exact repo does not match. '${exactRepo}' vs '${matches[1]}/${matches[2]}'`);
+                core.info(`Exact repo does not match. '${exactRepo}' vs '${matches[1]}/${matches[2]}'`);
                 return;
             }
             const [, targetOwner, targetRepo, targetPullRequestNumber] = matches;
@@ -13351,11 +13351,11 @@ function run() {
                 number: pullRequest.data.number,
                 pullRequest: JSON.stringify(pullRequest.data),
             };
-            core.debug('Set the following outputs:');
+            core.info('Set the following outputs:');
             // Can't use merge commit here because of `bin/bump-sentry`
             for (const k of Object.keys(outputs)) {
                 const v = outputs[k];
-                core.debug(`${k}: '${v}'`);
+                core.info(`${k}: '${v}'`);
                 core.setOutput(k, v);
             }
         }
