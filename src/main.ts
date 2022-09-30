@@ -71,8 +71,7 @@ async function run(): Promise<void> {
 
     core.info('Set the following outputs:');
     // Can't use merge commit here because of `bin/bump-sentry`
-    for (const k of Object.keys(outputs)) {
-      const v = outputs[k];
+    for (const [k, v] of Object.entries(outputs)) {
       core.info(`${k}: '${v}'`);
       core.setOutput(k, v);
     }
