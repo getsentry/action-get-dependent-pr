@@ -41,12 +41,15 @@ async function run(): Promise<void> {
     const matches = sourcePullRequest?.data.body?.match(textPatternRegex);
 
     if (!matches) {
-      core.debug('No match, nothing to do here...');
+      core.info('No match, nothing to do here...');
       return;
     }
 
     // If exactRepo was passed, then ensure that the link that was parsed matches it
     if (exactRepo && `${matches[1]}/${matches[2]}` !== exactRepo) {
+      core.info(
+        `Exact repo does not match. '${exactRepo}' vs '${matches[1]}/${matches[2]}'`
+      );
       return;
     }
 
@@ -59,11 +62,19 @@ async function run(): Promise<void> {
       pull_number: targetPullRequestNumber,
     });
 
+    const outputs = {
+      sha: pullRequest.data.head.sha,
+      branch: pullRequest.data.head.ref,
+      number: pullRequest.data.number,
+      pullRequest: JSON.stringify(pullRequest.data),
+    } as {[key: string]: string | number};
+
+    core.info('Set the following outputs:');
     // Can't use merge commit here because of `bin/bump-sentry`
-    core.setOutput('sha', pullRequest.data.head.sha);
-    core.setOutput('branch', pullRequest.data.head.ref);
-    core.setOutput('number', pullRequest.data.number);
-    core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
+    for (const [k, v] of Object.entries(outputs)) {
+      core.info(`${k}: '${v}'`);
+      core.setOutput(k, v);
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
