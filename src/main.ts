@@ -24,7 +24,7 @@ async function run(): Promise<void> {
 
     // We want to fetch the pull request on every run, if we use the workflow event
     // payload, the PR body text can be stale e.g. if you re-run a workflow
-    const sourcePullRequest = await octokit.pulls.get({
+    const sourcePullRequest = await octokit.rest.pulls.get({
       owner,
       repo,
       // @ts-ignore (typing is wrong for this)
@@ -52,7 +52,7 @@ async function run(): Promise<void> {
 
     const [, targetOwner, targetRepo, targetPullRequestNumber] = matches;
 
-    const pullRequest = await octokit.pulls.get({
+    const pullRequest = await octokit.rest.pulls.get({
       owner: targetOwner,
       repo: targetRepo,
       // @ts-ignore (typing is wrong for this)
@@ -65,7 +65,9 @@ async function run(): Promise<void> {
     core.setOutput('number', pullRequest.data.number);
     core.setOutput('pullRequest', JSON.stringify(pullRequest.data));
   } catch (error) {
-    core.setFailed(error.message);
+    if (error instanceof Error) {
+      core.error(error.message);
+    }
   }
 }
 
